@@ -99,7 +99,7 @@ screen say(who, what):
 
     window:
         id "window"
-
+        ysize 900 #increase height, modified by me
         if who is not None:
 
             window:

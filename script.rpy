@@ -30,13 +30,9 @@ label dynamic_story:
 
     "[story_text]"
 
-    menu:
-        "[choices[0]]":
-            $ player_choice = choices[0]
-        "[choices[1]]":
-            $ player_choice = choices[1]
-        "[choices[2]]":
-            $ player_choice = choices[2]
+    # Dynamic menu generation
+    $ choice_selected = renpy.display_menu([(choice, choice) for choice in choices])
+    $ player_choice = choice_selected
 
     # Update context with the new story segment and player's choice
     $ context += f"\n\nThe story continued: {story_text}\n\nThe player chose: {player_choice}."
