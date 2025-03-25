@@ -1,8 +1,7 @@
-init python:
+init -10 python:
     import requests
     import json
     import time
-    
     # Configuration
     #api key auto-pulled from secrets.rpy
     model = "gemini-2.0-flash"  # Changed to a more standard model name

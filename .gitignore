@@ -1,1 +1,6 @@
 secrets.rpy
+*.rpyc
+saves/
+cache/
+*.rpyb
+

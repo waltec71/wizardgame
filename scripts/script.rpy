@@ -4,7 +4,7 @@ default player_name = ""
 default player_choice = "start the game"
 
 #game image
-image bg tower = "images/tower.webp"
+image bg tower = "images/backgrounds/tower.webp"
 
 # Starting point
 label start:
