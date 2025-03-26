@@ -19,8 +19,7 @@ image bg tower = "images/backgrounds/tower.webp"
 # Starting point
 label start:
     # Load memories if they exist
-    python:
-        memory_system.load_from_file()
+    $ memory_system.load_from_file()
     
     scene black
     with fade
@@ -39,7 +38,7 @@ label start:
     # Save to file
     $ memory_system.save_to_file()
 
-    scene bg tower # This would be your tower background image
+    scene bg tower # Tower background image
     with fade
 
     "Welcome to the Tower of Shadows, [player_name]."

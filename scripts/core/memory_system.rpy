@@ -423,10 +423,3 @@ init -10 python:
         """Build and return relevant memory context for the current scene."""
         return memory_system.build_context(current_location, present_npcs, active_quests)
         
-    # Function to clear persistent memories
-    def clear_persistent_memories():
-        if hasattr(persistent, 'memories'):
-            del persistent.memories
-            renpy.save_persistent()
-            return "Persistent memories cleared."
-        return "No persistent memories found."
