@@ -199,7 +199,7 @@ init -10 python:
             
             # Add recent important memories
             recent_memories = [m for m in self.get_recent_memories(10) 
-                             if "Minor" not in m.tags and m not in context_elements]
+                            if "Minor" not in m.tags and m not in context_elements]
             context_elements.extend(recent_memories[:3])  # Add top 3 recent memories
             
             # Remove duplicates while preserving order
@@ -212,7 +212,7 @@ init -10 python:
             
             # Score and sort memories by relevance
             scored_memories = [(self._score_memory_relevance(memory, current_location, present_npcs, active_quests), memory) 
-                              for memory in unique_elements]
+                            for memory in unique_elements]
             scored_memories.sort(reverse=True)  # Sort by score, highest first
             
             # Take top elements based on token budget (rough approximation)
@@ -374,18 +374,19 @@ init -10 python:
                     })
             
             return potential_memories
+            
+        # Replace persistent storage with save-file specific storage
+        def save_to_file(self):
+            """Save memories to game variable instead of persistent storage"""
+            global stored_memory_data
+            stored_memory_data = [memory.to_dict() for memory in self.memories]
         
-        def save_to_persistent(self):
-            """Save memories to persistent storage"""
-            memory_data = [memory.to_dict() for memory in self.memories]
-            persistent.memories = json.dumps(memory_data)
-        
-        def load_from_persistent(self):
-            """Load memories from persistent storage"""
-            if hasattr(persistent, 'memories') and persistent.memories:
+        def load_from_file(self):
+            """Load memories from game variable instead of persistent storage"""
+            global stored_memory_data
+            if stored_memory_data:
                 try:
-                    memory_data = json.loads(persistent.memories)
-                    self.memories = [Memory.from_dict(data) for data in memory_data]
+                    self.memories = [Memory.from_dict(data) for data in stored_memory_data]
                     
                     # Rebuild indexes
                     self.entity_index = defaultdict(list)
@@ -417,10 +418,15 @@ init -10 python:
                 related_entities=["Tower of Shadows"]
             )
     
-    # Call this when the game starts
-    initialize_starting_memories()
-    
     # Helper function for the story generator to use
     def get_relevant_context(current_location=None, present_npcs=None, active_quests=None):
         """Build and return relevant memory context for the current scene."""
         return memory_system.build_context(current_location, present_npcs, active_quests)
+        
+    # Function to clear persistent memories
+    def clear_persistent_memories():
+        if hasattr(persistent, 'memories'):
+            del persistent.memories
+            renpy.save_persistent()
+            return "Persistent memories cleared."
+        return "No persistent memories found."

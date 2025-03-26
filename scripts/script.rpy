@@ -4,6 +4,7 @@ default player_choice = "start the game"
 default current_location = "Tower of Shadows"
 default present_npcs = []
 default active_quests = []
+default stored_memory_data = None
 
 # Track game state
 default game_state = {
@@ -19,7 +20,7 @@ image bg tower = "images/backgrounds/tower.webp"
 label start:
     # Load memories if they exist
     python:
-        memory_system.load_from_persistent()
+        memory_system.load_from_file()
     
     scene black
     with fade
@@ -34,6 +35,9 @@ label start:
         tags=["Character", "Critical"],
         related_entities=["Player"]
     )
+    
+    # Save to file
+    $ memory_system.save_to_file()
 
     scene bg tower # This would be your tower background image
     with fade
@@ -66,8 +70,8 @@ label dynamic_story:
         related_entities=["Player"]
     )
     
-    # Update memory persistence
-    $ memory_system.save_to_persistent()
+    # Update memory
+    $ memory_system.save_to_file()
 
     # Continue the loop
     jump dynamic_story

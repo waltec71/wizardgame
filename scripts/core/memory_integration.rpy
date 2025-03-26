@@ -44,8 +44,8 @@ init -8 python:
                     )
                     saved_memories.append(memory)
             
-            # Save to persistent storage
-            memory_system.save_to_persistent()
+            # Save to file
+            memory_system.save_to_file()
             
             return saved_memories
         
@@ -85,11 +85,11 @@ init -8 python:
             
             Format your response as JSON:
             [
-              {{
+                {{
                 "content": "The extracted memory as a sentence",
                 "tags": ["tag1", "tag2"],
                 "related_entities": ["entity1", "entity2"]
-              }}
+                }}
             ]
             
             Only include truly important information that would affect future story decisions or character knowledge.
@@ -115,8 +115,8 @@ init -8 python:
                         )
                         saved_memories.append(memory)
                     
-                    # Save to persistent storage
-                    memory_system.save_to_persistent()
+                    # Save to file
+                    memory_system.save_to_file()
                     
                     return saved_memories
                 else:
