@@ -55,25 +55,35 @@ label dynamic_story:
         present_npcs=present_npcs,
         active_quests=active_quests
     )
-
-    "[story_text]"
-
+    
+    # Split the story text into chunks
+    $ story_chunks = chunk_story_text(story_text)
+    
+    # Display chunks
+    call display_story_chunks(story_chunks)
+    
     # Dynamic menu generation
     $ choice_selected = renpy.display_menu([(choice, choice) for choice in choices])
     $ player_choice = choice_selected
     
-    # Add the player's choice to memory
+    # Update memory
     $ memory_system.add_memory(
         f"You chose to {player_choice}.",
         tags=["Action", "Recent"],
         related_entities=["Player"]
     )
-    
-    # Update memory
     $ memory_system.save_to_file()
 
     # Continue the loop
     jump dynamic_story
+
+# Helper label for displaying story chunks
+label display_story_chunks(chunks):
+    $ index = 0
+    while index < len(chunks):
+        "[chunks[index]]"
+        $ index += 1
+    return
 
 # Memory inspection screen - useful for debugging
 screen memory_debug():

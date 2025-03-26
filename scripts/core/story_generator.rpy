@@ -154,3 +154,49 @@ init -7 python:
             memory_system.save_to_persistent()
             
             return story, choices
+
+    def chunk_story_text(text, max_chars_per_chunk=150):
+        """
+        Split a story text into smaller, readable chunks
+        
+        Args:
+            text (str): The full story text
+            max_chars_per_chunk (int): Maximum characters per chunk
+            
+        Returns:
+            list: List of text chunks
+        """
+        # Split on sentence boundaries
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        
+        chunks = []
+        current_chunk = ""
+        
+        for sentence in sentences:
+            # If the sentence itself exceeds the limit, make it its own chunk
+            if len(sentence) >= max_chars_per_chunk:
+                # First add any accumulated text as its own chunk
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = ""
+                
+                # Add the long sentence as its own chunk
+                chunks.append(sentence.strip())
+                continue
+            
+            # If adding this sentence would exceed the limit, start a new chunk
+            if current_chunk and len(current_chunk) + len(sentence) + 1 > max_chars_per_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = sentence
+            else:
+                # Otherwise add to the current chunk
+                if current_chunk:
+                    current_chunk += " " + sentence
+                else:
+                    current_chunk = sentence
+        
+        # Add the last chunk if there's anything left
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        return chunks

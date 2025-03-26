@@ -593,3 +593,483 @@ RESPONSE:
 
 --------------------------------------------------------------------------------
 
+[2025-03-26 16:49:56]
+PROMPT:
+You are an AI storyteller for a dark fantasy wizard game.
+                
+                Current game state:
+                Character information:
+- Your name is boot, a novice wizard.
+
+                
+                Current location: Tower of Shadows
+                
+                Player's choice:
+                start the game
+                
+                Generate the next part of the story (1-2 paragraphs) and provide 2-4 choices for the player depending on what makes sense for the situation.
+                - For simple decisions: provide 2 choices
+                - For complex decisions with multiple approaches: provide 3 choices
+                - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
+                Format your response exactly as follows:
+                STORY: [story text here]
+                CHOICES:
+                1. [first choice]
+                2. [second choice]
+                3. [third choice (if appropriate)]
+                4. [fourth choice (if appropriate)]
+                
+
+RESPONSE:
+STORY: The Tower of Shadows looms before you, boot. Its obsidian bricks, slick with an unnatural moisture, reflect the sickly green sky in distorted patterns. A biting wind howls through the shattered battlements, carrying whispers that slither into your mind like icy tendrils. You clutch your worn spellbook tighter, the faded ink a familiar comfort in this desolate place. This is it, your initiation. To prove yourself worthy of the Obsidian Order, you must navigate the tower's treacherous depths and retrieve the Shadow Orb. The air crackles with malevolent energy, promising pain and madness. But you must press on.
+
+CHOICES:
+1. Attempt to dispel some of the malevolent energy with a novice ward.
+2. Carefully approach the tower entrance, scanning for traps.
+3. Chant a protection spell and brace yourself before entering.
+
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:49:57]
+PROMPT:
+You are an AI analyzing story text from a dark fantasy game to extract important memories.
+            
+            Story text:
+            "The Tower of Shadows looms before you, boot. Its obsidian bricks, slick with an unnatural moisture, reflect the sickly green sky in distorted patterns. A biting wind howls through the shattered battlements, carrying whispers that slither into your mind like icy tendrils. You clutch your worn spellbook tighter, the faded ink a familiar comfort in this desolate place. This is it, your initiation. To prove yourself worthy of the Obsidian Order, you must navigate the tower's treacherous depths and retrieve the Shadow Orb. The air crackles with malevolent energy, promising pain and madness. But you must press on."
+            
+            Player's choice:
+            "start the game"
+            
+            Current location: Tower of Shadows
+            
+            Please identify 1-3 important pieces of information from this text that should be remembered for future reference.
+            For each memory:
+            1. Extract the key information in a concise sentence
+            2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Minor
+            3. List any entities (characters, places, items) mentioned
+            
+            Format your response as JSON:
+            [
+                {
+                "content": "The extracted memory as a sentence",
+                "tags": ["tag1", "tag2"],
+                "related_entities": ["entity1", "entity2"]
+                }
+            ]
+            
+            Only include truly important information that would affect future story decisions or character knowledge.
+            
+
+RESPONSE:
+```json
+[
+  {
+    "content": "The player character must retrieve the Shadow Orb from the Tower of Shadows to prove their worth to the Obsidian Order.",
+    "tags": ["Plot", "Critical", "Action"],
+    "related_entities": ["player character", "Shadow Orb", "Tower of Shadows", "Obsidian Order"]
+  },
+  {
+    "content": "The Tower of Shadows is a dangerous place filled with malevolent energy, whispers, and treacherous depths.",
+    "tags": ["Location", "Critical"],
+    "related_entities": ["Tower of Shadows"]
+  }
+]
+```
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:54:56]
+PROMPT:
+You are an AI storyteller for a dark fantasy wizard game.
+                
+                Current game state:
+                Character information:
+- Your name is test, a novice wizard.
+
+                
+                Current location: Tower of Shadows
+                
+                Player's choice:
+                start the game
+                
+                Generate the next part of the story (1-2 paragraphs) and provide 2-4 choices for the player depending on what makes sense for the situation.
+                - For simple decisions: provide 2 choices
+                - For complex decisions with multiple approaches: provide 3 choices
+                - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
+                Format your response exactly as follows:
+                STORY: [story text here]
+                CHOICES:
+                1. [first choice]
+                2. [second choice]
+                3. [third choice (if appropriate)]
+                4. [fourth choice (if appropriate)]
+                
+
+RESPONSE:
+STORY: The Tower of Shadows looms before you, test, a jagged silhouette against the perpetually bruised sky. A biting wind whispers through the crumbling battlements, carrying with it the scent of decay and ozone. This is it, your first true test as a novice wizard. You clutch the worn leather-bound spellbook in your trembling hands, its pages filled with hastily scribbled notes and half-remembered incantations. Legend speaks of powerful artifacts hidden within, and of the dark magic that guards them. Will you brave the tower's depths and prove your worth, or will you succumb to its sinister influence?
+
+CHOICES:
+1. Take a deep breath and enter the tower.
+2. Circle the tower, searching for a less imposing entrance.
+3. Cast a protective spell before proceeding.
+
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:54:57]
+PROMPT:
+You are an AI analyzing story text from a dark fantasy game to extract important memories.
+            
+            Story text:
+            "The Tower of Shadows looms before you, test, a jagged silhouette against the perpetually bruised sky. A biting wind whispers through the crumbling battlements, carrying with it the scent of decay and ozone. This is it, your first true test as a novice wizard. You clutch the worn leather-bound spellbook in your trembling hands, its pages filled with hastily scribbled notes and half-remembered incantations. Legend speaks of powerful artifacts hidden within, and of the dark magic that guards them. Will you brave the tower's depths and prove your worth, or will you succumb to its sinister influence?"
+            
+            Player's choice:
+            "start the game"
+            
+            Current location: Tower of Shadows
+            
+            Please identify 1-3 important pieces of information from this text that should be remembered for future reference.
+            For each memory:
+            1. Extract the key information in a concise sentence
+            2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Minor
+            3. List any entities (characters, places, items) mentioned
+            
+            Format your response as JSON:
+            [
+                {
+                "content": "The extracted memory as a sentence",
+                "tags": ["tag1", "tag2"],
+                "related_entities": ["entity1", "entity2"]
+                }
+            ]
+            
+            Only include truly important information that would affect future story decisions or character knowledge.
+            
+
+RESPONSE:
+```json
+[
+  {
+    "content": "The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.",
+    "tags": ["Location", "Plot", "Critical"],
+    "related_entities": ["Tower of Shadows", "artifacts", "dark magic"]
+  },
+  {
+    "content": "The player character is a novice wizard undergoing their first true test.",
+    "tags": ["Character", "Plot", "Critical"],
+    "related_entities": ["player character"]
+  },
+  {
+    "content": "The player possesses a worn leather-bound spellbook filled with notes and incantations.",
+    "tags": ["Item", "Character", "Minor"],
+    "related_entities": ["spellbook"]
+  }
+]
+```
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:55:27]
+PROMPT:
+You are an AI storyteller for a dark fantasy wizard game.
+                
+                Current game state:
+                Important plot events:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+- The player character is a novice wizard undergoing their first true test.
+
+Character information:
+- The player character is a novice wizard undergoing their first true test.
+- Your name is test, a novice wizard.
+
+Location knowledge:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+
+Other memories:
+- You chose to Take a deep breath and enter the tower..
+                
+                Current location: Tower of Shadows
+                
+                Player's choice:
+                Take a deep breath and enter the tower.
+                
+                Generate the next part of the story (1-2 paragraphs) and provide 2-4 choices for the player depending on what makes sense for the situation.
+                - For simple decisions: provide 2 choices
+                - For complex decisions with multiple approaches: provide 3 choices
+                - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
+                Format your response exactly as follows:
+                STORY: [story text here]
+                CHOICES:
+                1. [first choice]
+                2. [second choice]
+                3. [third choice (if appropriate)]
+                4. [fourth choice (if appropriate)]
+                
+
+RESPONSE:
+STORY: Taking a deep breath, I push open the heavy, obsidian door of the Tower of Shadows. A wave of cold, stale air washes over me, carrying the scent of dust and decay. The entrance hall is circular, the walls lined with strange, pulsating runes that seem to writhe in my peripheral vision. A single torch flickers weakly in a sconce, casting long, dancing shadows that play tricks on my eyes. In the center of the room, a spiral staircase ascends into darkness, its steps worn and uneven. The air crackles with residual magic, a palpable sense of dread clinging to every surface. I can almost feel the weight of countless spells woven into the very fabric of the tower, some benevolent, many undoubtedly malevolent.
+
+CHOICES:
+1. Proceed cautiously up the spiral staircase.
+2. Examine the runes on the walls more closely.
+3. Search the entrance hall for any hidden passages or items.
+
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:55:28]
+PROMPT:
+You are an AI analyzing story text from a dark fantasy game to extract important memories.
+            
+            Story text:
+            "Taking a deep breath, I push open the heavy, obsidian door of the Tower of Shadows. A wave of cold, stale air washes over me, carrying the scent of dust and decay. The entrance hall is circular, the walls lined with strange, pulsating runes that seem to writhe in my peripheral vision. A single torch flickers weakly in a sconce, casting long, dancing shadows that play tricks on my eyes. In the center of the room, a spiral staircase ascends into darkness, its steps worn and uneven. The air crackles with residual magic, a palpable sense of dread clinging to every surface. I can almost feel the weight of countless spells woven into the very fabric of the tower, some benevolent, many undoubtedly malevolent."
+            
+            Player's choice:
+            "Take a deep breath and enter the tower."
+            
+            Current location: Tower of Shadows
+            
+            Please identify 1-3 important pieces of information from this text that should be remembered for future reference.
+            For each memory:
+            1. Extract the key information in a concise sentence
+            2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Minor
+            3. List any entities (characters, places, items) mentioned
+            
+            Format your response as JSON:
+            [
+                {
+                "content": "The extracted memory as a sentence",
+                "tags": ["tag1", "tag2"],
+                "related_entities": ["entity1", "entity2"]
+                }
+            ]
+            
+            Only include truly important information that would affect future story decisions or character knowledge.
+            
+
+RESPONSE:
+```json
+[
+  {
+    "content": "The Tower of Shadows entrance hall is circular with pulsating runes on the walls and a spiral staircase in the center.",
+    "tags": ["Location", "Critical"],
+    "related_entities": ["Tower of Shadows"]
+  },
+  {
+    "content": "The tower is filled with residual magic and a palpable sense of dread.",
+    "tags": ["Location", "Critical"],
+    "related_entities": ["Tower of Shadows"]
+  }
+]
+```
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:55:54]
+PROMPT:
+You are an AI storyteller for a dark fantasy wizard game.
+                
+                Current game state:
+                Important plot events:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+- The player character is a novice wizard undergoing their first true test.
+
+Character information:
+- The player character is a novice wizard undergoing their first true test.
+- Your name is test, a novice wizard.
+
+Location knowledge:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+- The Tower of Shadows entrance hall is circular with pulsating runes on the walls and a spiral staircase in the center.
+- The tower is filled with residual magic and a palpable sense of dread.
+
+Other memories:
+- You chose to Proceed cautiously up the spiral staircase..
+- You chose to Take a deep breath and enter the tower..
+                
+                Current location: Tower of Shadows
+                
+                Player's choice:
+                Proceed cautiously up the spiral staircase.
+                
+                Generate the next part of the story (1-2 paragraphs) and provide 2-4 choices for the player depending on what makes sense for the situation.
+                - For simple decisions: provide 2 choices
+                - For complex decisions with multiple approaches: provide 3 choices
+                - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
+                Format your response exactly as follows:
+                STORY: [story text here]
+                CHOICES:
+                1. [first choice]
+                2. [second choice]
+                3. [third choice (if appropriate)]
+                4. [fourth choice (if appropriate)]
+                
+
+RESPONSE:
+STORY: Each step up the spiral staircase feels heavier than the last. The air grows thick with the scent of ozone and decay. The pulsating runes on the walls seem to beat in time with your own heart, a frantic rhythm against the oppressive silence of the tower. As you ascend, you notice the stone steps are worn smooth in the center, hinting at countless journeys taken by those who came before, many of whom likely met their end within these very walls. Reaching the top of the staircase, you find yourself before a large, archway carved with grotesque faces. Beyond lies a dimly lit chamber.
+
+CHOICES:
+1. Steel yourself and enter the chamber.
+2. Cast a protective spell before proceeding.
+3. Examine the carvings on the archway more closely.
+
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:55:55]
+PROMPT:
+You are an AI analyzing story text from a dark fantasy game to extract important memories.
+            
+            Story text:
+            "Each step up the spiral staircase feels heavier than the last. The air grows thick with the scent of ozone and decay. The pulsating runes on the walls seem to beat in time with your own heart, a frantic rhythm against the oppressive silence of the tower. As you ascend, you notice the stone steps are worn smooth in the center, hinting at countless journeys taken by those who came before, many of whom likely met their end within these very walls. Reaching the top of the staircase, you find yourself before a large, archway carved with grotesque faces. Beyond lies a dimly lit chamber."
+            
+            Player's choice:
+            "Proceed cautiously up the spiral staircase."
+            
+            Current location: Tower of Shadows
+            
+            Please identify 1-3 important pieces of information from this text that should be remembered for future reference.
+            For each memory:
+            1. Extract the key information in a concise sentence
+            2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Minor
+            3. List any entities (characters, places, items) mentioned
+            
+            Format your response as JSON:
+            [
+                {
+                "content": "The extracted memory as a sentence",
+                "tags": ["tag1", "tag2"],
+                "related_entities": ["entity1", "entity2"]
+                }
+            ]
+            
+            Only include truly important information that would affect future story decisions or character knowledge.
+            
+
+RESPONSE:
+```json
+[
+  {
+    "content": "The tower's spiral staircase is heavily worn, suggesting many have traveled it before, likely meeting their end within the tower.",
+    "tags": ["Location", "Discovery", "Plot"],
+    "related_entities": ["Tower of Shadows"]
+  },
+  {
+    "content": "The air in the tower smells of ozone and decay, and pulsating runes adorn the walls.",
+    "tags": ["Location", "Discovery", "Minor"],
+    "related_entities": ["Tower of Shadows"]
+  }
+]
+```
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:56:32]
+PROMPT:
+You are an AI storyteller for a dark fantasy wizard game.
+                
+                Current game state:
+                Important plot events:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+- The player character is a novice wizard undergoing their first true test.
+- The tower's spiral staircase is heavily worn, suggesting many have traveled it before, likely meeting their end within the tower.
+
+Character information:
+- The player character is a novice wizard undergoing their first true test.
+- Your name is test, a novice wizard.
+
+Location knowledge:
+- The Tower of Shadows is a dangerous location rumored to contain powerful artifacts guarded by dark magic.
+- The Tower of Shadows entrance hall is circular with pulsating runes on the walls and a spiral staircase in the center.
+- The tower is filled with residual magic and a palpable sense of dread.
+- The tower's spiral staircase is heavily worn, suggesting many have traveled it before, likely meeting their end within the tower.
+- The air in the tower smells of ozone and decay, and pulsating runes adorn the walls.
+
+Other memories:
+- You chose to Examine the carvings on the archway more closely..
+- You chose to Proceed cautiously up the spiral staircase..
+- You chose to Take a deep breath and enter the tower..
+                
+                Current location: Tower of Shadows
+                
+                Player's choice:
+                Examine the carvings on the archway more closely.
+                
+                Generate the next part of the story (1-2 paragraphs) and provide 2-4 choices for the player depending on what makes sense for the situation.
+                - For simple decisions: provide 2 choices
+                - For complex decisions with multiple approaches: provide 3 choices
+                - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
+                Format your response exactly as follows:
+                STORY: [story text here]
+                CHOICES:
+                1. [first choice]
+                2. [second choice]
+                3. [third choice (if appropriate)]
+                4. [fourth choice (if appropriate)]
+                
+
+RESPONSE:
+STORY: Leaning closer, you trace the pulsating runes carved into the archway. They writhe beneath your fingertips, not with movement, but with raw, contained power. You recognize a few – symbols of binding, symbols of warding, and chillingly, symbols of sacrifice. The air around the archway crackles with an energy that makes the hairs on your arms stand on end. A wave of dizziness washes over you as you try to decipher the more complex glyphs, a whisper of voices echoing in your mind, promising knowledge and power, but at a terrible cost. You force yourself to step back, breaking the connection to the carvings. The voices fade, leaving you breathless and unnerved.
+
+CHOICES:
+1. Attempt to translate the runes fully, despite the risk.
+2. Memorize the runes you recognize and proceed into the tower.
+3. Cast a protective ward on yourself before attempting further study.
+
+
+--------------------------------------------------------------------------------
+
+[2025-03-26 16:56:33]
+PROMPT:
+You are an AI analyzing story text from a dark fantasy game to extract important memories.
+            
+            Story text:
+            "Leaning closer, you trace the pulsating runes carved into the archway. They writhe beneath your fingertips, not with movement, but with raw, contained power. You recognize a few – symbols of binding, symbols of warding, and chillingly, symbols of sacrifice. The air around the archway crackles with an energy that makes the hairs on your arms stand on end. A wave of dizziness washes over you as you try to decipher the more complex glyphs, a whisper of voices echoing in your mind, promising knowledge and power, but at a terrible cost. You force yourself to step back, breaking the connection to the carvings. The voices fade, leaving you breathless and unnerved."
+            
+            Player's choice:
+            "Examine the carvings on the archway more closely."
+            
+            Current location: Tower of Shadows
+            
+            Please identify 1-3 important pieces of information from this text that should be remembered for future reference.
+            For each memory:
+            1. Extract the key information in a concise sentence
+            2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Minor
+            3. List any entities (characters, places, items) mentioned
+            
+            Format your response as JSON:
+            [
+                {
+                "content": "The extracted memory as a sentence",
+                "tags": ["tag1", "tag2"],
+                "related_entities": ["entity1", "entity2"]
+                }
+            ]
+            
+            Only include truly important information that would affect future story decisions or character knowledge.
+            
+
+RESPONSE:
+```json
+[
+  {
+    "content": "The archway is inscribed with runes of binding, warding, and sacrifice, suggesting a dangerous purpose.",
+    "tags": ["Critical", "Location", "Discovery"],
+    "related_entities": ["Tower of Shadows", "archway"]
+  },
+  {
+    "content": "Examining the archway's runes triggers a dizzying experience and whispers promising knowledge and power at a terrible cost.",
+    "tags": ["Plot", "Discovery", "Action"],
+    "related_entities": ["Tower of Shadows", "archway"]
+  }
+]
+```
+
+--------------------------------------------------------------------------------
+
