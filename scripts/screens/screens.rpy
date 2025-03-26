@@ -1609,3 +1609,15 @@ style slider_vbox:
 style slider_slider:
     variant "small"
     xsize 900
+
+# Memory debug access - toggling with 'm' key
+screen memory_debug_access():
+    key "m" action If(
+        renpy.get_screen("memory_debug"),
+        Hide("memory_debug"),
+        Show("memory_debug")
+    )
+
+# Initialize this screen at game start
+init python:
+    config.overlay_screens.append("memory_debug_access")

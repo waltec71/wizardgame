@@ -1,20 +1,21 @@
-init -9 python:
-    # Story generation logic
+init -7 python:
+    # Enhanced Story generation logic with memory integration
     
-    class StoryGenerator:
+    class EnhancedStoryGenerator:
         """
-        Handles story generation and progression logic.
-        Uses the APIHandler to make API calls for narrative content.
+        Enhanced story generator that utilizes the memory system.
         """
         
         @staticmethod
-        def generate_story(context, player_choice):
+        def generate_story(player_choice, current_location=None, present_npcs=None, active_quests=None):
             """
-            Generates the next part of the story based on context and player choice
+            Generates the next part of the story based on memory context and player choice
             
             Args:
-                context (str): Current game context/state
                 player_choice (str): The player's most recent choice
+                current_location (str): Current location in game
+                present_npcs (list): NPCs present in the current scene
+                active_quests (list): Currently active quests
                 
             Returns:
                 tuple: (story_text, choices) where:
@@ -22,11 +23,20 @@ init -9 python:
                     - choices (list): List of choices for the player
             """
             try:
+                # Get relevant memories as context
+                memory_context = memory_system.build_context(
+                    current_location=current_location,
+                    present_npcs=present_npcs,
+                    active_quests=active_quests
+                )
+                
                 # Construct the prompt for story generation
                 prompt = f"""You are an AI storyteller for a dark fantasy wizard game.
                 
-                Previous context:
-                {context}
+                Current game state:
+                {memory_context}
+                
+                Current location: {current_location or "Unknown"}
                 
                 Player's choice:
                 {player_choice}
@@ -35,6 +45,7 @@ init -9 python:
                 - For simple decisions: provide 2 choices
                 - For complex decisions with multiple approaches: provide 3 choices
                 - Only when there are distinct pathways or special opportunities: provide 4 choices
+                
                 Format your response exactly as follows:
                 STORY: [story text here]
                 CHOICES:
@@ -45,6 +56,9 @@ init -9 python:
                 """
                 
                 # Call the API using the APIHandler
+                if USE_TEST_MODE:
+                    return TestStoryGenerator.generate_story_test(memory_context, player_choice)
+                
                 ai_response = APIHandler.call_api(prompt)
                 
                 # Check if the response contains an error message
@@ -60,32 +74,83 @@ init -9 python:
                 if not choices:
                     choices = ["Continue"]
                 
+                # Extract and save memories from this story segment
+                MemoryManager.use_ai_to_extract_memories(
+                    story_part, 
+                    player_choice,
+                    current_location
+                )
+                
                 return story_part, choices
                 
             except Exception as e:
                 # Fallback in case of errors
                 return f"The ancient tome's pages blur before your eyes. (Error: {str(e)})", ["Continue cautiously"]
-    
+
+
     # Test version for development/testing without API calls
-    class TestStoryGenerator:
+    class EnhancedTestStoryGenerator:
         """
-        A test version of the story generator that works without API calls.
-        Useful for testing game flow without consuming API quota.
+        An enhanced test version of the story generator that works without API calls.
+        Includes integration with the memory system.
         """
         
         @staticmethod
-        def generate_story_test(context, player_choice):
+        def generate_story_test(memory_context, player_choice):
             """
-            Generates test stories based on player choice
+            Generates test stories based on player choice and memory context
             
             Args:
-                context (str): Current game context/state
+                memory_context (str): Context built from memory system
                 player_choice (str): The player's most recent choice
                 
             Returns:
                 tuple: (story_text, choices)
             """
+            print(f"Memory context: {memory_context}")
+            
             if "start the game" in player_choice.lower():
-                return "You stand in the dimly lit chamber of the tower. Ancient tomes line the walls, and magical artifacts glow with an eerie light. Your master left you here to study, but you sense something is not right. The air feels heavy with arcane energy.", ["Examine the tomes", "Investigate the strange glow", "Leave the chamber"]
+                story = "You stand in the dimly lit chamber of the tower. Ancient tomes line the walls, and magical artifacts glow with an eerie light. Your master left you here to study, but you sense something is not right. The air feels heavy with arcane energy."
+                choices = ["Examine the tomes", "Investigate the strange glow", "Leave the chamber"]
+                
+                # Add this as a memory
+                memory_system.add_memory(
+                    "Your master left you alone in the tower to study.",
+                    tags=["Plot", "Character"],
+                    related_entities=["Player", "Master", "Tower of Shadows"]
+                )
+                
+            elif "examine the tomes" in player_choice.lower():
+                story = "You approach the ancient shelves, your fingers tracing the spines of dusty grimoires. One book seems to pulse with a subtle energy, its leather binding warm to the touch. The title reads 'Whispers of the Void' in a script that seems to shift as you look at it."
+                choices = ["Open 'Whispers of the Void'", "Look for other interesting books", "Step away from the shelves"]
+                
+                memory_system.add_memory(
+                    "You found a book called 'Whispers of the Void' that pulses with energy.",
+                    tags=["Discovery", "Item"],
+                    related_entities=["Whispers of the Void", "Tower of Shadows"]
+                )
+                
+            elif "investigate the strange glow" in player_choice.lower():
+                story = "You move toward the source of the ethereal light. A crystal orb sits on a pedestal in the corner, swirling with blue-green energy. As you approach, the light intensifies, and whispers fill your mind—unintelligible yet somehow familiar."
+                choices = ["Touch the orb", "Try to understand the whispers", "Return to the center of the room"]
+                
+                memory_system.add_memory(
+                    "There is a crystal orb in the tower that whispers to you.",
+                    tags=["Discovery", "Item", "Critical"],
+                    related_entities=["Crystal Orb", "Tower of Shadows"]
+                )
+                
             else:
-                return f"You decided to {player_choice}. The tower seems to respond to your choices, shifting slightly. You feel your powers growing.", ["Continue exploring", "Try casting a spell", "Look for hidden passages"]
+                story = f"You decided to {player_choice}. The tower seems to respond to your choices, shifting slightly. You feel your powers growing, but also sense that the path you're on will have consequences."
+                choices = ["Continue exploring", "Try casting a spell", "Look for hidden passages"]
+                
+                memory_system.add_memory(
+                    f"You chose to {player_choice}.",
+                    tags=["Action", "Player"],
+                    related_entities=["Player"]
+                )
+            
+            # Save memories to persistent
+            memory_system.save_to_persistent()
+            
+            return story, choices
