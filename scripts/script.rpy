@@ -3,7 +3,7 @@ default context = "The game begins in a dark tower. The player is a novice wizar
 default player_name = ""
 default player_choice = "start the game"
 
-#game image
+# Game image
 image bg tower = "images/backgrounds/tower.webp"
 
 # Starting point
@@ -26,7 +26,8 @@ label start:
 
 # Main story loop
 label dynamic_story:
-    $ story_text, choices = generate_story(context, player_choice)
+    # Use the StoryGenerator class for story generation
+    $ story_text, choices = StoryGenerator.generate_story(context, player_choice)
 
     "[story_text]"
 
