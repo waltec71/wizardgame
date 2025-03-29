@@ -81,35 +81,35 @@ init -8 python:
 
             Story text:
             "{story_text}"
-            
+
             Player's choice:
             "{player_choice}"
-            
+
             Current location: {current_location or "Unknown"}
             Present NPCs: {", ".join(present_npcs) if present_npcs else "None"}
-            
+
             Please extract ONLY truly significant memories from this text. Focus on:
             1. Plot-critical revelations
             2. Character relationships or development
             3. Discoveries about the world or magic
             4. New quest information
             5. Major player decisions
-            
+
             For each memory:
             1. Express it in a clear, concise sentence
             2. Assign appropriate tags from: Critical, Plot, Character, Location, Item, Discovery, Action, Quest, Decision
             3. List any entities (characters, places, items) mentioned
-            
+
             Format your response as JSON:
             [
-                {
+                {{
                 "content": "The concise memory as a single sentence",
                 "tags": ["tag1", "tag2"],
                 "related_entities": ["entity1", "entity2"],
-                "relationships": [{"content": "brief description of another memory this relates to", "type": "causes/related/contradicts"}]
-                }
+                "relationships": [{{"content": "brief description of another memory this relates to", "type": "causes/related/contradicts"}}]
+                }}
             ]
-            
+
             Important guidelines:
             - Limit to 1-3 memories maximum
             - Focus on SIGNIFICANCE not just what happened

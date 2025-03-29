@@ -711,6 +711,7 @@ init -10 python:
                     self.reconstruct_relationships()
                     
                 except Exception as e:
+                    log_exception("story generation", e, f"player_choice: {player_choice}")
                     print(f"Error loading memories: {str(e)}")
     
     

@@ -85,6 +85,7 @@ init -7 python:
                 
             except Exception as e:
                 # Fallback in case of errors
+                log_exception("story generation", e, f"player_choice: {player_choice}")
                 return f"The ancient tome's pages blur before your eyes. (Error: {str(e)})", ["Continue cautiously"]
 
 

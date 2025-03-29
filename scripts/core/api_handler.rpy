@@ -16,6 +16,36 @@ init -11 python:
         except:
             pass  # Ignore if we can't create the directory
     
+    def log_exception(phase, e, extra_info=None):
+        """
+        Simple exception logger that writes to a file
+        
+        Args:
+            phase (str): What was happening when the error occurred
+            e (Exception): The exception that was raised
+            extra_info (str, optional): Any extra context information
+        """
+        try:
+            import traceback
+            
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            error_log_path = os.path.join(config.basedir, "game/logs/error_log.txt")
+            
+            with open(error_log_path, "a", encoding="utf-8") as f:
+                f.write(f"[{timestamp}] ERROR IN: {phase}\n")
+                f.write(f"Exception: {type(e).__name__}: {str(e)}\n")
+                
+                if extra_info:
+                    f.write(f"Context: {extra_info}\n")
+                    
+                # Get the traceback
+                tb = traceback.format_exc()
+                f.write(f"Traceback:\n{tb}\n")
+                f.write("-" * 50 + "\n\n")
+        except:
+            # If logging fails, at least print to console
+            print(f"ERROR IN: {phase} - {type(e).__name__}: {str(e)}")
+    
     # Simple log function
     def log_api_interaction(prompt, response=None, error=None):
         """
@@ -111,6 +141,7 @@ init -11 python:
                 error_msg = f"Error: {str(e)}"
                 # Log the exception
                 log_api_interaction(prompt, error=error_msg)
+                log_exception("API call", e, f"Prompt snippet: {prompt[:100]}...")
                 return error_msg
     
     # Placeholder for additional API handlers as the project expands
