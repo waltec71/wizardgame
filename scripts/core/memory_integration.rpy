@@ -19,6 +19,9 @@ init -8 python:
             Returns:
                 list: Memories that were extracted and saved
             """
+            # Get current turn
+            global game_turn
+            
             # Initial simple memory extraction
             potential_memories = memory_system.analyze_text_for_memories(
                 story_text, 
@@ -30,7 +33,8 @@ init -8 python:
                 memory_system.add_memory(
                     f"You chose to {player_choice}.",
                     tags=["Action", "Player", "Recent"],
-                    related_entities=["Player"]
+                    related_entities=["Player"],
+                    turn=game_turn
                 )
             
             # Save extracted memories
@@ -41,7 +45,8 @@ init -8 python:
                     memory = memory_system.add_memory(
                         mem["content"],
                         tags=mem["tags"],
-                        related_entities=mem["related_entities"]
+                        related_entities=mem["related_entities"],
+                        turn=game_turn
                     )
                     saved_memories.append(memory)
             
@@ -65,12 +70,15 @@ init -8 python:
             Returns:
                 list: Memories that were extracted and saved
             """
+            # Get current turn
+            global game_turn
+            
             # Skip if test mode is active or for very short texts
             if USE_TEST_MODE or len(story_text) < 50:
                 return []
                 
             prompt = f"""You are an AI analyzing a dark fantasy wizard game story to extract important memories.
-    
+
             Story text:
             "{story_text}"
             
@@ -126,7 +134,8 @@ init -8 python:
                         memory = memory_system.add_memory(
                             mem_data["content"],
                             tags=mem_data["tags"],
-                            related_entities=mem_data["related_entities"]
+                            related_entities=mem_data["related_entities"],
+                            turn=game_turn  # Use current game turn
                         )
                         saved_memories.append(memory)
                     
@@ -254,7 +263,7 @@ init -8 python:
             if len(entity_memories) < 3:
                 return None
                 
-            # Sort by timestamp (newest first)
+            # Sort by turn (newest first)
             entity_memories.sort(reverse=True)
             
             # Create a summary
@@ -268,11 +277,15 @@ init -8 python:
             if len(entity_memories) > max_memories:
                 content += f" ...and {len(entity_memories)-max_memories} more related events."
             
+            # Get current turn
+            global game_turn
+            
             # Create a summary memory
             summary = memory_system.add_memory(
                 content=content,
                 tags=["Summary"] + list(set().union(*[set(m.tags) for m in included_memories])),
-                related_entities=[entity]
+                related_entities=[entity],
+                turn=game_turn
             )
             
             # Add relationships to the original memories

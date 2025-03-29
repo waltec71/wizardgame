@@ -10,9 +10,9 @@ init -10 python:
     class Memory:
         """
         Represents a single memory entry in the game.
-        Enhanced with relationship tracking and more advanced features.
+        Uses game turns to track when memories were created.
         """
-        def __init__(self, content, tags=None, related_entities=None, timestamp=None):
+        def __init__(self, content, tags=None, related_entities=None, turn=None):
             """
             Initialize a new memory.
             
@@ -20,16 +20,16 @@ init -10 python:
                 content (str): The memory content text
                 tags (list): List of tags categorizing the memory
                 related_entities (list): Names of entities related to this memory
-                timestamp (datetime): When the memory was created
+                turn (int): The game turn when this memory was created
             """
             self.content = content
             self.tags = tags or []
             self.related_entities = related_entities or []
-            self.timestamp = timestamp or datetime.now()
+            self.turn = turn or 1  # Default to turn 1 if none provided
             self.access_count = 0  # Track how often this memory is accessed
             self._hash = hash(self.content)  # Create a hash for comparison
             
-            # New attributes for enhanced relationship tracking
+            # For relationship tracking
             self.related_memories = set()  # Other memories this one relates to
             self.relationship_types = {}   # Map of memory_id -> relationship type
         
@@ -62,10 +62,8 @@ init -10 python:
                 "content": self.content,
                 "tags": self.tags,
                 "related_entities": self.related_entities,
-                "timestamp": str(self.timestamp),
+                "turn": self.turn,
                 "access_count": self.access_count,
-                # We don't serialize related_memories directly as they're recreated
-                # through relationship reconstruction on load
                 "relationships": [(mem._hash, self.relationship_types[mem._hash]) 
                                 for mem in self.related_memories if mem._hash in self.relationship_types]
             }
@@ -73,21 +71,13 @@ init -10 python:
         @classmethod
         def from_dict(cls, data):
             """Create memory from dictionary"""
-            try:
-                timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
-            except ValueError:
-                # Handle different timestamp formats
-                try:
-                    timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
-                except ValueError:
-                    timestamp = datetime.now()
-                    
             memory = cls(
                 content=data["content"],
                 tags=data["tags"],
                 related_entities=data["related_entities"],
-                timestamp=timestamp
+                turn=data.get("turn", 1)
             )
+            
             memory.access_count = data.get("access_count", 0)
             # Relationships are reconstructed after all memories are loaded
             return memory
@@ -105,30 +95,30 @@ init -10 python:
             """Allow using memories in sets"""
             return self._hash
             
-        # These methods allow Python to compare Memory objects
+        # These methods define comparison to use turns instead of timestamps
         def __lt__(self, other):
-            """Less than comparison based on timestamp"""
+            """Less than comparison based on turn"""
             if not isinstance(other, Memory):
                 return NotImplemented
-            return self.timestamp < other.timestamp
+            return self.turn < other.turn
             
         def __le__(self, other):
-            """Less than or equal comparison based on timestamp"""
+            """Less than or equal comparison based on turn"""
             if not isinstance(other, Memory):
                 return NotImplemented
-            return self.timestamp <= other.timestamp
+            return self.turn <= other.turn
             
         def __gt__(self, other):
-            """Greater than comparison based on timestamp"""
+            """Greater than comparison based on turn"""
             if not isinstance(other, Memory):
                 return NotImplemented
-            return self.timestamp > other.timestamp
+            return self.turn > other.turn
             
         def __ge__(self, other):
-            """Greater than or equal comparison based on timestamp"""
+            """Greater than or equal comparison based on turn"""
             if not isinstance(other, Memory):
                 return NotImplemented
-            return self.timestamp >= other.timestamp
+            return self.turn >= other.turn
 
 
     class MemorySystem:
@@ -142,7 +132,7 @@ init -10 python:
             self.tag_index = defaultdict(list)     # For quick lookup by tag
             self.hash_index = {}                  # For quick lookup by hash
         
-        def add_memory(self, content, tags=None, related_entities=None):
+        def add_memory(self, content, tags=None, related_entities=None, turn=None):
             """
             Add a new memory to the system.
             
@@ -150,12 +140,18 @@ init -10 python:
                 content (str): The memory content
                 tags (list): Tags for categorization (e.g., "Critical", "Character", "Location")
                 related_entities (list): Entities mentioned in the memory
+                turn (int): The game turn when this memory was created
                 
             Returns:
                 Memory: The created memory object
             """
+            # Use current game turn if none provided
+            if turn is None:
+                global game_turn
+                turn = game_turn
+                
             # Create the memory
-            memory = Memory(content, tags, related_entities)
+            memory = Memory(content, tags, related_entities, turn)
             
             # Add to main list
             self.memories.append(memory)
@@ -210,7 +206,7 @@ init -10 python:
         
         def get_recent_memories(self, count=5):
             """Get the most recent memories"""
-            return sorted(self.memories, key=lambda m: m.timestamp, reverse=True)[:count]
+            return sorted(self.memories, key=lambda m: m.turn, reverse=True)[:count]
         
         def build_context(self, current_location=None, present_npcs=None, active_quests=None, max_tokens=1000):
             """
@@ -291,7 +287,7 @@ init -10 python:
         
         def _score_memory_relevance(self, memory, current_location, present_npcs, active_quests):
             """
-            Enhanced scoring function for memory relevance
+            Enhanced scoring function for memory relevance with turn-based scoring
             
             Args:
                 memory (Memory): The memory to score
@@ -308,10 +304,10 @@ init -10 python:
             if "Critical" in memory.tags:
                 score += 10
             
-            # Recent memories are more relevant
-            time_delta = datetime.now() - memory.timestamp
-            days_old = time_delta.days + (time_delta.seconds / 86400)
-            recency_score = max(0, 10 - (days_old * 0.5))  # Gradually decay over 20 days
+            # Recent memories are more relevant (turn-based recency)
+            global game_turn
+            turns_ago = game_turn - memory.turn
+            recency_score = max(0, 10 - (turns_ago * 0.5))  # Gradually decay over 20 turns
             score += recency_score
                 
             # Location relevance
@@ -401,7 +397,7 @@ init -10 python:
                     content = f"Regarding {entity}: "
                     memory_contents = []
                     
-                    # Sort by timestamp
+                    # Sort by turn
                     entity_memories.sort()
                     
                     for m in entity_memories[:3]:
@@ -412,11 +408,19 @@ init -10 python:
                     if len(entity_memories) > 3:
                         content += f" ...and {len(entity_memories)-3} more related events."
                     
+                    # Collect all unique tags from the memories
+                    all_tags = ["Summary"]
+                    for m in entity_memories:
+                        for tag in m.tags:
+                            if tag not in all_tags:
+                                all_tags.append(tag)
+                    
                     # Create a new memory with the summary
                     summary = Memory(
                         content=content,
-                        tags=["Summary"] + list(set().union(*[set(m.tags) for m in entity_memories])),
-                        related_entities=[entity]
+                        tags=all_tags,
+                        related_entities=[entity],
+                        turn=entity_memories[-1].turn  # Use the latest turn
                     )
                     
                     # Add relationships to the original memories
@@ -490,6 +494,7 @@ init -10 python:
         def prune_memories(self, max_minor_memories=50):
             """
             Remove less important memories to prevent context bloat.
+            Uses turn-based scoring to determine which memories to keep.
             
             Args:
                 max_minor_memories (int): Maximum number of minor memories to keep
@@ -503,7 +508,7 @@ init -10 python:
             if len(minor_memories) <= max_minor_memories:
                 return 0
             
-            # Sort by relevance score (using a simplified version of scoring function)
+            # Sort by turn-based relevance score
             scored_memories = [(self._simplified_score(m), m) for m in minor_memories]
             scored_memories.sort()  # Lowest scores first
             
@@ -540,9 +545,10 @@ init -10 python:
             if "Critical" in memory.tags:
                 score += 100
                 
-            # Recency bonus
-            days_old = (datetime.now() - memory.timestamp).days
-            score += max(0, 30 - days_old)
+            # Recency bonus based on turns
+            global game_turn
+            turns_ago = game_turn - memory.turn
+            score += max(0, 30 - turns_ago)
             
             # Access count bonus
             score += memory.access_count * 5

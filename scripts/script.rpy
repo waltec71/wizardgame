@@ -6,6 +6,9 @@ default present_npcs = []
 default active_quests = []
 default stored_memory_data = None
 
+# Add turn counter
+default game_turn = 1
+
 # Track game state
 default game_state = {
     "visited_locations": ["Tower of Shadows"],
@@ -35,7 +38,8 @@ label start:
     $ memory_system.add_memory(
         f"Your name is {player_name}, a novice wizard.",
         tags=["Character", "Critical"],
-        related_entities=["Player"]
+        related_entities=["Player"],
+        turn=game_turn
     )
     
     # Save to file
@@ -73,9 +77,13 @@ label dynamic_story:
     $ memory_system.add_memory(
         f"You chose to {player_choice}.",
         tags=["Action", "Recent"],
-        related_entities=["Player"]
+        related_entities=["Player"],
+        turn=game_turn
     )
     $ memory_system.save_to_file()
+    
+    # Increment turn counter after each choice
+    $ game_turn += 1
 
     # Continue the loop
     jump dynamic_story
