@@ -1,10 +1,7 @@
 secrets.rpy
 *.rpyc
+*.rpyb
 saves/
 cache/
-*.rpyb
-
-cache/screens.rpyb
-cache/bytecode-39.rpyb
-cache/py3analysis.rpyb
-cache/py3analysis.rpyb
+tl/
+logs/
