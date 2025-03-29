@@ -2,6 +2,9 @@ secrets.rpy
 *.rpyc
 *.rpyb
 saves/
+cache/*.rpyb
 cache/
 tl/
 logs/
+cache/py3analysis.rpyb
+game/cache/
