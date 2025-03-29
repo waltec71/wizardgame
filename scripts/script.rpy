@@ -21,6 +21,9 @@ label start:
     # Load memories if they exist
     $ memory_system.load_from_file()
     
+    # Enable full memory features
+    $ enable_full_memory_features()
+    
     scene black
     with fade
 

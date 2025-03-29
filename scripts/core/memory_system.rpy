@@ -1,12 +1,16 @@
 init -10 python:
     import json
     import re
-    from datetime import datetime
+    from datetime import datetime, timedelta
     from collections import defaultdict
+    
+    # Initialize with a "light" mode for startup to improve performance
+    MEMORY_SYSTEM_FULL_FEATURES = False
     
     class Memory:
         """
         Represents a single memory entry in the game.
+        Enhanced with relationship tracking and more advanced features.
         """
         def __init__(self, content, tags=None, related_entities=None, timestamp=None):
             """
@@ -24,6 +28,33 @@ init -10 python:
             self.timestamp = timestamp or datetime.now()
             self.access_count = 0  # Track how often this memory is accessed
             self._hash = hash(self.content)  # Create a hash for comparison
+            
+            # New attributes for enhanced relationship tracking
+            self.related_memories = set()  # Other memories this one relates to
+            self.relationship_types = {}   # Map of memory_id -> relationship type
+        
+        def add_relationship(self, other_memory, relationship_type="related"):
+            """
+            Create a relationship between this memory and another.
+            
+            Args:
+                other_memory (Memory): The memory to relate to
+                relationship_type (str): Type of relationship (e.g., "causes", "contradicts")
+            """
+            if other_memory is not self:  # Avoid self-relationships
+                self.related_memories.add(other_memory)
+                self.relationship_types[other_memory._hash] = relationship_type
+                
+                # Add reciprocal relationship if appropriate
+                if relationship_type == "related":
+                    other_memory.related_memories.add(self)
+                    other_memory.relationship_types[self._hash] = "related"
+                elif relationship_type == "causes":
+                    other_memory.related_memories.add(self)
+                    other_memory.relationship_types[self._hash] = "caused_by"
+                elif relationship_type == "contradicts":
+                    other_memory.related_memories.add(self)
+                    other_memory.relationship_types[self._hash] = "contradicted_by"
         
         def to_dict(self):
             """Convert memory to dictionary for serialization"""
@@ -32,18 +63,33 @@ init -10 python:
                 "tags": self.tags,
                 "related_entities": self.related_entities,
                 "timestamp": str(self.timestamp),
-                "access_count": self.access_count
+                "access_count": self.access_count,
+                # We don't serialize related_memories directly as they're recreated
+                # through relationship reconstruction on load
+                "relationships": [(mem._hash, self.relationship_types[mem._hash]) 
+                                for mem in self.related_memories if mem._hash in self.relationship_types]
             }
         
         @classmethod
         def from_dict(cls, data):
             """Create memory from dictionary"""
+            try:
+                timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+            except ValueError:
+                # Handle different timestamp formats
+                try:
+                    timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    timestamp = datetime.now()
+                    
             memory = cls(
                 content=data["content"],
                 tags=data["tags"],
-                related_entities=data["related_entities"]
+                related_entities=data["related_entities"],
+                timestamp=timestamp
             )
             memory.access_count = data.get("access_count", 0)
+            # Relationships are reconstructed after all memories are loaded
             return memory
             
         def __str__(self):
@@ -88,11 +134,13 @@ init -10 python:
     class MemorySystem:
         """
         Manages the storage, retrieval, and maintenance of game memories.
+        Enhanced with relationship tracking, memory compression, and forgetting mechanisms.
         """
         def __init__(self):
             self.memories = []
             self.entity_index = defaultdict(list)  # For quick lookup by entity
             self.tag_index = defaultdict(list)     # For quick lookup by tag
+            self.hash_index = {}                  # For quick lookup by hash
         
         def add_memory(self, content, tags=None, related_entities=None):
             """
@@ -118,6 +166,9 @@ init -10 python:
                 
             for tag in memory.tags:
                 self.tag_index[tag.lower()].append(memory)
+            
+            # Store in hash index for relationship reconstruction
+            self.hash_index[memory._hash] = memory
                 
             return memory
         
@@ -164,6 +215,7 @@ init -10 python:
         def build_context(self, current_location=None, present_npcs=None, active_quests=None, max_tokens=1000):
             """
             Build a relevant context from memories for the current game state.
+            Enhanced with better scoring and summarization.
             
             Args:
                 current_location (str): The current location name
@@ -215,23 +267,41 @@ init -10 python:
                             for memory in unique_elements]
             scored_memories.sort(reverse=True)  # Sort by score, highest first
             
-            # Take top elements based on token budget (rough approximation)
+            # Check if we need compression
             selected_memories = []
             total_length = 0
             for _, memory in scored_memories:
                 # Rough token estimation (~4 chars per token)
                 memory_length = len(memory.content)
-                if total_length + memory_length > max_tokens * 4:
+                if total_length + memory_length > max_tokens * 3:  # Leave room for formatting
                     break
                 selected_memories.append(memory)
                 total_length += memory_length
+                
+                # Increment access count for this memory
+                memory.access_count += 1
+            
+            # Apply compression if we still have too many memories
+            if MEMORY_SYSTEM_FULL_FEATURES and total_length > max_tokens * 3.5:
+                selected_memories = self.compress_memories(selected_memories)
             
             # Format the context
             formatted_context = self._format_context(selected_memories)
             return formatted_context
         
         def _score_memory_relevance(self, memory, current_location, present_npcs, active_quests):
-            """Score a memory's relevance to the current game state"""
+            """
+            Enhanced scoring function for memory relevance
+            
+            Args:
+                memory (Memory): The memory to score
+                current_location (str): Current game location
+                present_npcs (list): NPCs in the current scene
+                active_quests (list): Active quests
+                
+            Returns:
+                float: Relevance score
+            """
             score = 0
             
             # Critical memories always get high score
@@ -239,33 +309,46 @@ init -10 python:
                 score += 10
             
             # Recent memories are more relevant
-            if memory in self.get_recent_memories(5):
-                score += 5
-            elif memory in self.get_recent_memories(10):
-                score += 3
+            time_delta = datetime.now() - memory.timestamp
+            days_old = time_delta.days + (time_delta.seconds / 86400)
+            recency_score = max(0, 10 - (days_old * 0.5))  # Gradually decay over 20 days
+            score += recency_score
                 
             # Location relevance
-            if current_location and current_location.lower() in [e.lower() for e in memory.related_entities]:
-                score += 4
-                
-            # NPC relevance
+            if current_location:
+                if current_location.lower() in [e.lower() for e in memory.related_entities]:
+                    score += 4
+                # We could add location relationship check here with a location_is_related function
+            
+            # NPC relevance with priority for directly mentioned NPCs
             if present_npcs:
                 for npc in present_npcs:
                     if npc.lower() in [e.lower() for e in memory.related_entities]:
                         score += 3
+                        # Give bonus for memories that directly involve current NPCs
+                        if any(npc.lower() in m.content.lower() for m in memory.related_memories):
+                            score += 1
             
-            # Quest relevance
+            # Quest relevance with higher scores for active quests
             if active_quests:
                 for quest in active_quests:
                     if quest.lower() in [e.lower() for e in memory.related_entities]:
                         score += 5
+                        
+                        # Give bonus for memories related to uncompleted quest steps
+                        if "Incomplete" in memory.tags or "Task" in memory.tags:
+                            score += 2
             
-            # Tag importance
+            # Tag importance - more detailed scoring based on tag type
             tag_scores = {
                 "major": 3,
                 "plot": 4,
                 "character": 2,
                 "location": 2,
+                "item": 1,
+                "discovery": 3,
+                "achievement": 2,
+                "decision": 3,
                 "minor": -1
             }
             
@@ -277,10 +360,82 @@ init -10 python:
             # Access count - memories that have been recalled often are important
             score += min(memory.access_count, 5) * 0.5
             
+            # Relationship bonus - memories that connect to many others are important
+            if MEMORY_SYSTEM_FULL_FEATURES and memory.related_memories:
+                relationship_score = min(len(memory.related_memories), 3) * 0.5
+                score += relationship_score
+            
             return score
         
+        def compress_memories(self, memories, max_length=500):
+            """
+            Compress a set of related memories into a concise summary.
+            
+            Args:
+                memories (list): List of Memory objects to compress
+                max_length (int): Target maximum length for the summary
+                
+            Returns:
+                list: Compressed list of memories
+            """
+            if not memories or len(memories) <= 2:
+                return memories
+            
+            # Group by related entities
+            entity_groups = defaultdict(list)
+            for memory in memories:
+                for entity in memory.related_entities:
+                    entity_groups[entity].append(memory)
+            
+            # Find predominant entities (those with multiple memories)
+            main_entities = [e for e, mems in entity_groups.items() if len(mems) > 2]
+            
+            # Create summaries for entity groups
+            summaries = []
+            compressed_memories = set()
+            
+            for entity in main_entities:
+                entity_memories = sorted(entity_groups[entity])
+                if len(entity_memories) >= 3:
+                    # Create a summary for this entity
+                    content = f"Regarding {entity}: "
+                    memory_contents = []
+                    
+                    # Sort by timestamp
+                    entity_memories.sort()
+                    
+                    for m in entity_memories[:3]:
+                        memory_contents.append(m.content)
+                        compressed_memories.add(m)
+                        
+                    content += " ".join(memory_contents)
+                    if len(entity_memories) > 3:
+                        content += f" ...and {len(entity_memories)-3} more related events."
+                    
+                    # Create a new memory with the summary
+                    summary = Memory(
+                        content=content,
+                        tags=["Summary"] + list(set().union(*[set(m.tags) for m in entity_memories])),
+                        related_entities=[entity]
+                    )
+                    
+                    # Add relationships to the original memories
+                    for m in entity_memories:
+                        summary.add_relationship(m, "summarizes")
+                        
+                    summaries.append(summary)
+            
+            # Replace compressed memories with summaries
+            result = [m for m in memories if m not in compressed_memories]
+            result.extend(summaries)
+            
+            return result
+        
         def _format_context(self, memories):
-            """Format a list of memories into a coherent context string"""
+            """
+            Format a list of memories into a coherent context string.
+            Enhanced with better organization by type.
+            """
             if not memories:
                 return "No relevant memories."
             
@@ -288,9 +443,18 @@ init -10 python:
             character_memories = [m for m in memories if "Character" in m.tags]
             plot_memories = [m for m in memories if "Plot" in m.tags]
             location_memories = [m for m in memories if "Location" in m.tags]
-            other_memories = [m for m in memories if not any(t in m.tags for t in ["Character", "Plot", "Location"])]
+            quest_memories = [m for m in memories if "Quest" in m.tags]
+            summary_memories = [m for m in memories if "Summary" in m.tags]
+            other_memories = [m for m in memories if not any(t in m.tags for t in ["Character", "Plot", "Location", "Quest", "Summary"])]
             
             formatted = []
+            
+            # Add summaries first
+            if summary_memories:
+                formatted.append("Memory Summaries:")
+                for memory in summary_memories:
+                    formatted.append(f"- {memory.content}")
+                formatted.append("")
             
             if plot_memories:
                 formatted.append("Important plot events:")
@@ -309,6 +473,12 @@ init -10 python:
                 for memory in location_memories:
                     formatted.append(f"- {memory.content}")
                 formatted.append("")
+                
+            if quest_memories:
+                formatted.append("Quest information:")
+                for memory in quest_memories:
+                    formatted.append(f"- {memory.content}")
+                formatted.append("")
             
             if other_memories:
                 formatted.append("Other memories:")
@@ -316,6 +486,118 @@ init -10 python:
                     formatted.append(f"- {memory.content}")
             
             return "\n".join(formatted)
+        
+        def prune_memories(self, max_minor_memories=50):
+            """
+            Remove less important memories to prevent context bloat.
+            
+            Args:
+                max_minor_memories (int): Maximum number of minor memories to keep
+                
+            Returns:
+                int: Number of memories pruned
+            """
+            # Only prune memories tagged as Minor
+            minor_memories = [m for m in self.memories if "Minor" in m.tags]
+            
+            if len(minor_memories) <= max_minor_memories:
+                return 0
+            
+            # Sort by relevance score (using a simplified version of scoring function)
+            scored_memories = [(self._simplified_score(m), m) for m in minor_memories]
+            scored_memories.sort()  # Lowest scores first
+            
+            # Determine how many to remove
+            to_remove = len(minor_memories) - max_minor_memories
+            
+            # Remove the lowest-scored memories
+            removed = 0
+            for _, memory in scored_memories[:to_remove]:
+                self.memories.remove(memory)
+                
+                # Also remove from indexes
+                for entity in memory.related_entities:
+                    if memory in self.entity_index[entity.lower()]:
+                        self.entity_index[entity.lower()].remove(memory)
+                        
+                for tag in memory.tags:
+                    if memory in self.tag_index[tag.lower()]:
+                        self.tag_index[tag.lower()].remove(memory)
+                        
+                # Remove from hash index
+                if memory._hash in self.hash_index:
+                    del self.hash_index[memory._hash]
+                    
+                removed += 1
+            
+            return removed
+
+        def _simplified_score(self, memory):
+            """Simplified scoring for memory pruning"""
+            score = 0
+            
+            # Critical memories get high score
+            if "Critical" in memory.tags:
+                score += 100
+                
+            # Recency bonus
+            days_old = (datetime.now() - memory.timestamp).days
+            score += max(0, 30 - days_old)
+            
+            # Access count bonus
+            score += memory.access_count * 5
+            
+            # Relationship bonus (memories with many relations are important)
+            if MEMORY_SYSTEM_FULL_FEATURES:
+                score += len(memory.related_memories) * 3
+            
+            return score
+        
+        def find_conflicting_memories(self):
+            """
+            Identify potentially conflicting memories based on content similarity.
+            
+            Returns:
+                list: Pairs of potentially conflicting memories
+            """
+            if not MEMORY_SYSTEM_FULL_FEATURES:
+                return []
+                
+            conflicts = []
+            
+            # Group memories by entities for efficiency
+            for entity, memories in self.entity_index.items():
+                if len(memories) < 2:
+                    continue
+                    
+                # Check each pair
+                for i, mem1 in enumerate(memories):
+                    for mem2 in memories[i+1:]:
+                        # Skip if already in a relationship
+                        if mem2 in mem1.related_memories:
+                            continue
+                            
+                        # Simple similarity check
+                        similarity = self._calculate_text_similarity(mem1.content, mem2.content)
+                        if similarity > 0.6:  # Threshold for potential conflict
+                            conflicts.append((mem1, mem2, similarity))
+            
+            return conflicts
+
+        def _calculate_text_similarity(self, text1, text2):
+            """
+            Calculate similarity between two text strings (simple implementation).
+            Uses a word overlap approach.
+            """
+            # Simple word overlap
+            words1 = set(re.findall(r'\w+', text1.lower()))
+            words2 = set(re.findall(r'\w+', text2.lower()))
+            
+            if not words1 or not words2:
+                return 0
+                
+            overlap = len(words1.intersection(words2))
+            return overlap / min(len(words1), len(words2))
         
         def analyze_text_for_memories(self, text, entities=None):
             """
@@ -348,11 +630,10 @@ init -10 python:
                 # Check for known entities
                 if entities:
                     for entity in entities:
-                        if entity.lower() in sentence.lower():
+                        if entity and entity.lower() in sentence.lower():
                             related_entities.append(entity)
                 
-                # Basic heuristics for tagging
-                # These are simplified - you would expand this based on your game's needs
+                # Enhanced heuristics for tagging
                 if any(word in sentence.lower() for word in ["discover", "found", "revealed", "secret", "hidden"]):
                     tags.append("Discovery")
                     
@@ -364,6 +645,16 @@ init -10 python:
                     
                 if any(word in sentence.lower() for word in ["critical", "important", "essential", "key", "vital"]):
                     tags.append("Critical")
+                    
+                # New patterns for improved auto-tagging
+                if re.search(r'(?i)(kill|defeat|vanquish|destroy|overcome)', sentence):
+                    tags.append("Combat")
+                    
+                if re.search(r'(?i)(promise|vow|swear|pledge)', sentence):
+                    tags.append("Commitment")
+                    
+                if re.search(r'(?i)(betray|deceive|trick|lie)', sentence):
+                    tags.append("Deception")
                 
                 # Only add if we have some tags or entities
                 if tags or related_entities:
@@ -375,7 +666,27 @@ init -10 python:
             
             return potential_memories
             
-        # Replace persistent storage with save-file specific storage
+        def reconstruct_relationships(self):
+            """
+            Reconstruct memory relationships after loading from saved game.
+            This rebuilds the relationship links between memory objects.
+            """
+            if not MEMORY_SYSTEM_FULL_FEATURES:
+                return
+                
+            # Process each memory
+            for memory in self.memories:
+                # Skip memories with no relationships data
+                if not hasattr(memory, "relationships") or not memory.relationships:
+                    continue
+                    
+                # Rebuild relationships
+                for related_hash, rel_type in memory.relationships:
+                    if related_hash in self.hash_index:
+                        related_memory = self.hash_index[related_hash]
+                        memory.add_relationship(related_memory, rel_type)
+        
+        # Save and load functions
         def save_to_file(self):
             """Save memories to game variable instead of persistent storage"""
             global stored_memory_data
@@ -391,12 +702,18 @@ init -10 python:
                     # Rebuild indexes
                     self.entity_index = defaultdict(list)
                     self.tag_index = defaultdict(list)
+                    self.hash_index = {}
                     
                     for memory in self.memories:
                         for entity in memory.related_entities:
                             self.entity_index[entity.lower()].append(memory)
                         for tag in memory.tags:
                             self.tag_index[tag.lower()].append(memory)
+                        self.hash_index[memory._hash] = memory
+                        
+                    # Reconstruct relationships between memories
+                    self.reconstruct_relationships()
+                    
                 except Exception as e:
                     print(f"Error loading memories: {str(e)}")
     
@@ -423,3 +740,7 @@ init -10 python:
         """Build and return relevant memory context for the current scene."""
         return memory_system.build_context(current_location, present_npcs, active_quests)
         
+    # Enable full features once the game is running
+    def enable_full_memory_features():
+        global MEMORY_SYSTEM_FULL_FEATURES
+        MEMORY_SYSTEM_FULL_FEATURES = True
