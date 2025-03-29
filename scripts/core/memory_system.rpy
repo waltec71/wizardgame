@@ -4,9 +4,6 @@ init -10 python:
     from datetime import datetime, timedelta
     from collections import defaultdict
     
-    # Initialize with a "light" mode for startup to improve performance
-    MEMORY_SYSTEM_FULL_FEATURES = False
-    
     class Memory:
         """
         Represents a single memory entry in the game.
@@ -278,7 +275,7 @@ init -10 python:
                 memory.access_count += 1
             
             # Apply compression if we still have too many memories
-            if MEMORY_SYSTEM_FULL_FEATURES and total_length > max_tokens * 3.5:
+            if total_length > max_tokens * 3.5:
                 selected_memories = self.compress_memories(selected_memories)
             
             # Format the context
@@ -357,7 +354,7 @@ init -10 python:
             score += min(memory.access_count, 5) * 0.5
             
             # Relationship bonus - memories that connect to many others are important
-            if MEMORY_SYSTEM_FULL_FEATURES and memory.related_memories:
+            if memory.related_memories:
                 relationship_score = min(len(memory.related_memories), 3) * 0.5
                 score += relationship_score
             
@@ -554,8 +551,7 @@ init -10 python:
             score += memory.access_count * 5
             
             # Relationship bonus (memories with many relations are important)
-            if MEMORY_SYSTEM_FULL_FEATURES:
-                score += len(memory.related_memories) * 3
+            score += len(memory.related_memories) * 3
             
             return score
         
@@ -566,9 +562,6 @@ init -10 python:
             Returns:
                 list: Pairs of potentially conflicting memories
             """
-            if not MEMORY_SYSTEM_FULL_FEATURES:
-                return []
-                
             conflicts = []
             
             # Group memories by entities for efficiency
@@ -677,9 +670,6 @@ init -10 python:
             Reconstruct memory relationships after loading from saved game.
             This rebuilds the relationship links between memory objects.
             """
-            if not MEMORY_SYSTEM_FULL_FEATURES:
-                return
-                
             # Process each memory
             for memory in self.memories:
                 # Skip memories with no relationships data
@@ -745,8 +735,3 @@ init -10 python:
     def get_relevant_context(current_location=None, present_npcs=None, active_quests=None):
         """Build and return relevant memory context for the current scene."""
         return memory_system.build_context(current_location, present_npcs, active_quests)
-        
-    # Enable full features once the game is running
-    def enable_full_memory_features():
-        global MEMORY_SYSTEM_FULL_FEATURES
-        MEMORY_SYSTEM_FULL_FEATURES = True

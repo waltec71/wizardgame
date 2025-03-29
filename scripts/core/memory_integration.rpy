@@ -73,8 +73,8 @@ init -8 python:
             # Get current turn
             global game_turn
             
-            # Skip if test mode is active or for very short texts
-            if USE_TEST_MODE or len(story_text) < 50:
+            # Skip for very short texts
+            if len(story_text) < 50:
                 return []
                 
             prompt = f"""You are an AI analyzing a dark fantasy wizard game story to extract important memories.
@@ -140,47 +140,45 @@ init -8 python:
                         saved_memories.append(memory)
                     
                     # Process relationships if they exist
-                    if MEMORY_SYSTEM_FULL_FEATURES:
-                        for i, mem_data in enumerate(memory_data):
-                            if "relationships" in mem_data and mem_data["relationships"]:
-                                # For each relationship
-                                for rel in mem_data["relationships"]:
-                                    # Try to find a memory that matches the description
-                                    matching_memory = None
-                                    for existing_mem in memory_system.memories:
-                                        # Skip the current memory
-                                        if existing_mem == saved_memories[i]:
-                                            continue
-                                            
-                                        # Simple text similarity check
-                                        similarity = memory_system._calculate_text_similarity(
-                                            rel["content"],
-                                            existing_mem.content
-                                        )
-                                        if similarity > 0.6:  # Reasonable match threshold
-                                            matching_memory = existing_mem
-                                            break
-                                    
-                                    # If we found a match, establish the relationship
-                                    if matching_memory:
-                                        saved_memories[i].add_relationship(
-                                            matching_memory,
-                                            rel.get("type", "related")
-                                        )
+                    for i, mem_data in enumerate(memory_data):
+                        if "relationships" in mem_data and mem_data["relationships"]:
+                            # For each relationship
+                            for rel in mem_data["relationships"]:
+                                # Try to find a memory that matches the description
+                                matching_memory = None
+                                for existing_mem in memory_system.memories:
+                                    # Skip the current memory
+                                    if existing_mem == saved_memories[i]:
+                                        continue
+                                        
+                                    # Simple text similarity check
+                                    similarity = memory_system._calculate_text_similarity(
+                                        rel["content"],
+                                        existing_mem.content
+                                    )
+                                    if similarity > 0.6:  # Reasonable match threshold
+                                        matching_memory = existing_mem
+                                        break
+                                
+                                # If we found a match, establish the relationship
+                                if matching_memory:
+                                    saved_memories[i].add_relationship(
+                                        matching_memory,
+                                        rel.get("type", "related")
+                                    )
                     
                     # Check for and resolve potential conflicts
-                    if MEMORY_SYSTEM_FULL_FEATURES:
-                        conflicts = memory_system.find_conflicting_memories()
-                        for mem1, mem2, similarity in conflicts:
-                            # For high similarity, mark as related
-                            if similarity > 0.8:
-                                mem1.add_relationship(mem2, "related")
-                            # For moderately high similarity, check if they might contradict
-                            elif similarity > 0.6:
-                                # This is just a heuristic - in a complete implementation
-                                # you might use the API to analyze if they contradict
-                                if any(word in mem1.content.lower() for word in ["not", "never", "no"]):
-                                    mem1.add_relationship(mem2, "contradicts")
+                    conflicts = memory_system.find_conflicting_memories()
+                    for mem1, mem2, similarity in conflicts:
+                        # For high similarity, mark as related
+                        if similarity > 0.8:
+                            mem1.add_relationship(mem2, "related")
+                        # For moderately high similarity, check if they might contradict
+                        elif similarity > 0.6:
+                            # This is just a heuristic - in a complete implementation
+                            # you might use the API to analyze if they contradict
+                            if any(word in mem1.content.lower() for word in ["not", "never", "no"]):
+                                mem1.add_relationship(mem2, "contradicts")
                     
                     # Save to file
                     memory_system.save_to_file()
@@ -216,9 +214,6 @@ init -8 python:
             Returns:
                 bool: True if relationship was created, False otherwise
             """
-            if not MEMORY_SYSTEM_FULL_FEATURES:
-                return False
-                
             memory1 = None
             memory2 = None
             
@@ -253,9 +248,6 @@ init -8 python:
             Returns:
                 Memory: The created summary memory, or None if not enough memories
             """
-            if not MEMORY_SYSTEM_FULL_FEATURES:
-                return None
-                
             # Get memories for this entity
             entity_memories = memory_system.get_memories_by_entity(entity)
             

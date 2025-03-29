@@ -89,9 +89,9 @@ init -7 python:
 
 
     # Test version for development/testing without API calls
-    class EnhancedTestStoryGenerator:
+    class TestStoryGenerator:
         """
-        An enhanced test version of the story generator that works without API calls.
+        A test version of the story generator that works without API calls.
         Includes integration with the memory system.
         """
         
@@ -151,7 +151,7 @@ init -7 python:
                 )
             
             # Save memories to persistent
-            memory_system.save_to_persistent()
+            memory_system.save_to_file()
             
             return story, choices
 
